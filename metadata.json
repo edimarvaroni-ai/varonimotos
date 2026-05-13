@@ -1,0 +1,9 @@
+{
+  "name": "Varoni Motos Marketplace",
+  "description": "Plataforma premium exclusiva para compra e venda de motocicletas. Design de alto padrão com chat em tempo real, financiamento e gestão de anúncios.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
