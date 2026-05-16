@@ -75,6 +75,21 @@ export function ListingDetail() {
     navigate(`/chat/${chatId}`);
   };
 
+  if (loading || !listing) {
+    return (
+      <div className="h-screen bg-black flex items-center justify-center">
+        <div className="flex flex-col items-center gap-6">
+          <motion.div 
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            className="w-12 h-12 border-2 border-yellow-400/20 border-t-yellow-400 rounded-full"
+          />
+          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20">Sincronizando Máquina</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen pb-40 bg-black">
       {/* Dynamic Background */}

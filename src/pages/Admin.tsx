@@ -131,6 +131,21 @@ export function AdminPortal({ user, profile }: { user: any, profile: UserProfile
     );
   }
 
+  if (loading) {
+    return (
+      <div className="h-screen bg-[#050505] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-6">
+          <motion.div 
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            className="w-12 h-12 border-2 border-yellow-400/20 border-t-yellow-400 rounded-full"
+          />
+          <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/20">Carregando Governança</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen py-24 px-8">
       <div className="max-w-7xl mx-auto space-y-16">
@@ -309,7 +324,7 @@ export function AdminPortal({ user, profile }: { user: any, profile: UserProfile
                   </div>
                   <div className="p-10 space-y-4">
                     <div className="flex items-center gap-4 text-[9px] font-black uppercase tracking-[0.3em] text-yellow-400">
-                      <span>{new Date(post.createdAt?.seconds * 1000).toLocaleDateString()}</span>
+                      <span>{post.createdAt ? new Date(post.createdAt.seconds * 1000).toLocaleDateString() : "Publicando..."}</span>
                       <span className="w-1 h-1 bg-white/20 rounded-full" />
                       <span>{post.images.length} Fotos</span>
                     </div>

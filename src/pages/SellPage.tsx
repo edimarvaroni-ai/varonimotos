@@ -119,7 +119,7 @@ export function SellPage({ user }: { user: any }) {
 
     window.addEventListener("paste", handlePaste);
     return () => window.removeEventListener("paste", handlePaste);
-  }, [user.uid]);
+  }, [user?.uid]);
 
   const addImage = () => {
     if (newImageUrl && newImageUrl.startsWith("http")) {

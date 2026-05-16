@@ -10,7 +10,7 @@ import {
   Bike, Search, MessageSquare, Heart, User, PlusCircle, 
   Settings, LogOut, LogIn, Menu, X, ChevronRight,
   TrendingUp, MapPin, Calculator, Shield, Zap, Instagram, Facebook, Phone, MessageCircle,
-  ShieldCheck
+  ShieldCheck, Newspaper
 } from "lucide-react";
 import { 
   db, auth, collection, onSnapshot, query, orderBy, 
@@ -27,6 +27,7 @@ import { AdminPortal } from "./pages/Admin";
 import { AboutPage } from "./pages/About";
 import { ContactPage } from "./pages/Contact";
 import { FinancingPage } from "./pages/Financing";
+import { NewsPage } from "./pages/News";
 
 // --- Layout Component ---
 function Layout({ children, user, profile }: { children: React.ReactNode, user: any, profile: UserProfile | null }) {
@@ -55,6 +56,7 @@ function Layout({ children, user, profile }: { children: React.ReactNode, user: 
 
   const navLinks = [
     { name: "Catálogo", path: "/", icon: Bike },
+    { name: "Novidades", path: "/news", icon: Newspaper },
     { name: "Financiamento", path: "/financiamento", icon: Calculator },
     ...(isAdmin ? [{ name: "Anunciar", path: "/vender", icon: PlusCircle }] : []),
     { name: "Sobre", path: "/sobre", icon: Shield },
@@ -315,6 +317,7 @@ export default function App() {
       <Layout user={user} profile={profile}>
         <Routes>
           <Route path="/" element={<Marketplace />} />
+          <Route path="/news" element={<NewsPage />} />
           <Route path="/listing/:id" element={<ListingDetail />} />
           <Route path="/chat" element={<ChatPage user={user} />} />
           <Route path="/chat/:chatId" element={<ChatPage user={user} />} />

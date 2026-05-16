@@ -129,9 +129,11 @@ export function ChatPage({ user }: { user: any }) {
                   alt="" 
                 />
                 <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start mb-1">
+                    <div className="flex justify-between items-start mb-1">
                     <p className="text-[9px] font-black text-white/20 uppercase tracking-widest uppercase truncate">{chat.listing?.brand} {chat.listing?.model}</p>
-                    <span className="text-[8px] font-black text-white/10">{chat.updatedAt && formatDistanceToNow(chat.updatedAt.toDate(), { locale: ptBR })}</span>
+                    <span className="text-[8px] font-black text-white/10">
+                      {chat.updatedAt && typeof chat.updatedAt.toDate === 'function' ? formatDistanceToNow(chat.updatedAt.toDate(), { locale: ptBR }) : 'Recentemente'}
+                    </span>
                   </div>
                   <h4 className="text-sm font-black uppercase tracking-tighter mb-2 italic truncate">{chat.otherUser?.displayName || "Interessado"}</h4>
                   <p className="text-[10px] items-center gap-2 text-white/30 truncate">
@@ -205,7 +207,7 @@ export function ChatPage({ user }: { user: any }) {
                         {msg.content}
                       </div>
                       <p className={`text-[8px] font-black text-white/10 mt-3 uppercase tracking-widest ${isMine ? 'text-right' : 'text-left'}`}>
-                        {msg.createdAt && formatDistanceToNow(msg.createdAt.toDate(), { locale: ptBR })}
+                        {msg.createdAt && typeof msg.createdAt.toDate === 'function' ? formatDistanceToNow(msg.createdAt.toDate(), { locale: ptBR }) : 'Agora'}
                       </p>
                     </div>
                   </motion.div>

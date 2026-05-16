@@ -69,15 +69,9 @@ export function Marketplace() {
             </div>
             
             <div className="relative inline-block">
-              <h1 className="title-massive text-[15vw] md:text-[12vw] leading-none text-white italic drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
-                SPEED <span className="text-yellow-400">&</span><br />
-                POWER
+              <h1 className="title-massive text-[12vw] md:text-[10vw] leading-none text-white italic drop-shadow-[0_10px_30px_rgba(0,0,0,0.5)] uppercase">
+                MÁQUINA DE <span className="text-yellow-400">VENDAS</span>
               </h1>
-              <div className="absolute -top-10 -right-10 md:-right-20 rotate-12 hidden md:block">
-                <div className="bg-white text-black px-8 py-4 brutal-border font-black text-xl italic uppercase tracking-tighter">
-                  Sold Out Fast
-                </div>
-              </div>
             </div>
 
             <div className="max-w-4xl mx-auto pt-10">
