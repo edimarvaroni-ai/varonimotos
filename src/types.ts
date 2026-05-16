@@ -70,3 +70,14 @@ export interface Post {
   updatedAt: any;
   authorId: string;
 }
+
+export interface CatalogItem {
+  id: string;
+  type: string;
+  model: string;
+  year: number;
+  description: string;
+  images: string[];
+  createdAt: any;
+  updatedAt: any;
+}

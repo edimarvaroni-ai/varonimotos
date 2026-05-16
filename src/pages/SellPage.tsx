@@ -9,7 +9,8 @@ import {
 } from "lucide-react";
 import { 
   db, auth, storage, collection, addDoc, serverTimestamp,
-  ref, uploadBytes, getDownloadURL, uploadBytesResumable, handleFirestoreError, OperationType
+  ref, uploadBytes, getDownloadURL, uploadBytesResumable, handleFirestoreError, OperationType,
+  query, orderBy, onSnapshot
 } from "../lib/firebase";
 
 interface UploadProgress {
@@ -44,8 +45,6 @@ export function SellPage({ user }: { user: any }) {
       state: "SP"
     }
   });
-
-  const [newImageUrl, setNewImageUrl] = useState("");
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement> | File[]) => {
     const files = Array.isArray(e) ? e : Array.from(e.target.files || []);
@@ -121,19 +120,23 @@ export function SellPage({ user }: { user: any }) {
     return () => window.removeEventListener("paste", handlePaste);
   }, [user?.uid]);
 
-  const addImage = () => {
-    if (newImageUrl && newImageUrl.startsWith("http")) {
-      setFormData({ ...formData, images: [...formData.images, newImageUrl] });
-      setNewImageUrl("");
-    }
-  };
-
   const removeImage = (index: number) => {
     setFormData({
       ...formData,
       images: formData.images.filter((_, i) => i !== index)
     });
   };
+
+  const [catalogItems, setCatalogItems] = useState<any[]>([]);
+
+  useEffect(() => {
+    const q = query(collection(db, "catalog"), orderBy("model", "asc"));
+    return onSnapshot(q, (snap) => {
+      setCatalogItems(snap.docs.map(d => d.data()));
+    }, (err) => {
+      handleFirestoreError(err, OperationType.GET, "catalog");
+    });
+  }, []);
 
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -222,11 +225,33 @@ export function SellPage({ user }: { user: any }) {
                 <label className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-2">Modelo</label>
                 <input 
                   required
+                  list="model-suggestions"
                   value={formData.model}
-                  onChange={e => setFormData({...formData, model: e.target.value})}
+                  onChange={e => {
+                    const val = e.target.value;
+                    setFormData({...formData, model: val});
+                    // Auto-fill brand or category if model matches a catalog item
+                    const match = catalogItems.find(item => item.model === val);
+                    if (match) {
+                      setFormData(prev => ({
+                        ...prev,
+                        model: val,
+                        brand: match.brand || prev.brand,
+                        category: match.type || prev.category
+                      }));
+                    }
+                  }}
                   className="w-full bg-white/5 border border-white/10 p-6 rounded-2xl text-lg font-bold italic placeholder:text-white/5 outline-none focus:border-yellow-400/50 transition-all"
                   placeholder="Ex: CB 500F"
                 />
+                <datalist id="model-suggestions">
+                  {catalogItems.map((item, i) => (
+                    <option key={i} value={item.model}>{item.type}</option>
+                  ))}
+                  {!catalogItems.length && ["CB 500F", "R1250 GS", "MT-07", "Ninja 400", "Iron 883", "Tiger 900"].map(m => (
+                    <option key={m} value={m} />
+                  ))}
+                </datalist>
               </div>
               <div className="space-y-2">
                 <label className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-2">Ano</label>
@@ -411,25 +436,6 @@ export function SellPage({ user }: { user: any }) {
                 </div>
               </div>
 
-              <div className="bg-white/[0.02] border border-white/5 p-8 rounded-3xl space-y-4">
-                <label className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-2">Ou adicione por Link (URL)</label>
-                <div className="flex gap-4">
-                  <input 
-                    value={newImageUrl}
-                    onChange={e => setNewImageUrl(e.target.value)}
-                    className="flex-1 bg-white/5 border border-white/10 p-5 rounded-2xl text-sm font-medium outline-none focus:border-yellow-400/50 transition-all placeholder:text-white/5"
-                    placeholder="Cole a URL da foto..."
-                  />
-                  <button 
-                    type="button"
-                    onClick={addImage}
-                    className="px-8 py-5 bg-white/10 hover:bg-white text-white hover:text-black rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all border-0 cursor-pointer"
-                  >
-                    Adicionar
-                  </button>
-                </div>
-              </div>
-
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {formData.images.map((url, idx) => (
                   <div key={idx} className="relative group aspect-square rounded-2xl overflow-hidden border border-white/10">
@@ -447,7 +453,7 @@ export function SellPage({ user }: { user: any }) {
                   <div className="col-span-full py-12 border-2 border-dashed border-white/5 rounded-[2.5rem] flex flex-col items-center justify-center space-y-4">
                     <ImageIcon className="w-10 h-10 text-white/10" />
                     <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/20 text-center px-8">
-                      Nenhuma foto adicionada.<br />Faça upload do computador ou cole links de imagens.
+                      Nenhuma foto adicionada.<br />Faça upload do computador ou cole imagens diretamente.
                     </p>
                   </div>
                 )}

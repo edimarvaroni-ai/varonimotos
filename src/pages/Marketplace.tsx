@@ -7,19 +7,28 @@ import { db, collection, onSnapshot, query, where, orderBy, handleFirestoreError
 
 export function Marketplace() {
   const [listings, setListings] = useState<Listing[]>([]);
+  const [catalogItems, setCatalogItems] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("Todas");
   const [brand, setBrand] = useState("Todas");
 
   useEffect(() => {
+    // Listen to Catalog for suggestions
+    const qCatalog = query(collection(db, "catalog"), orderBy("model", "asc"));
+    const unsubCatalog = onSnapshot(qCatalog, (snap) => {
+      setCatalogItems(snap.docs.map(d => d.data()));
+    }, (err) => {
+      handleFirestoreError(err, OperationType.GET, "catalog");
+    });
+
     const q = query(
       collection(db, "listings"), 
       where("status", "==", "active"),
       orderBy("createdAt", "desc")
     );
     
-    return onSnapshot(q, (snapshot) => {
+    const unsubListings = onSnapshot(q, (snapshot) => {
       const data = snapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })) as Listing[];
       setListings(data);
       setLoading(false);
@@ -27,6 +36,11 @@ export function Marketplace() {
       handleFirestoreError(err, OperationType.GET, "listings");
       setLoading(false);
     });
+
+    return () => {
+      unsubCatalog();
+      unsubListings();
+    };
   }, []);
 
   const filtered = listings.filter(l => {
@@ -92,6 +106,19 @@ export function Marketplace() {
                     Encontrar Moto
                   </button>
                 </div>
+              </div>
+
+              <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+                <span className="text-[10px] font-black uppercase tracking-widest text-white/20 mr-2">Exemplos:</span>
+                {(catalogItems.length > 0 ? catalogItems.slice(0, 5) : [{model: "CB 500F"}, {model: "R1250 GS"}, {model: "MT-07"}, {model: "Ninja 400"}]).map((item, i) => (
+                  <button 
+                    key={i}
+                    onClick={() => setSearch(item.model)}
+                    className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-[9px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-all cursor-pointer"
+                  >
+                    {item.model}
+                  </button>
+                ))}
               </div>
               
               <div className="flex flex-wrap items-center justify-center gap-10 mt-12 opacity-30">
@@ -165,7 +192,6 @@ export function Marketplace() {
 
           {/* Brand Filter */}
           <div className="flex flex-wrap items-center gap-3 p-6 bg-white/[0.01] rounded-[2rem] border border-white/5">
-            <p className="text-[10px] font-black uppercase tracking-widest text-white/20 mr-4">Marcas:</p>
             {brands.map(b => (
               <button
                 key={b}
