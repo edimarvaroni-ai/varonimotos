@@ -78,7 +78,7 @@ export function Marketplace() {
                 className="inline-flex items-center gap-4 px-8 py-3 rounded-full border border-white/10 bg-white/5 backdrop-blur-2xl"
               >
                 <span className="w-2 h-2 rounded-full bg-yellow-400 animate-ping" />
-                <span className="text-[10px] font-black uppercase tracking-[0.6em] text-white/50">Varoni Motos Premium</span>
+                <span className="text-[10px] font-black uppercase tracking-[0.6em] text-white/50">OFFICIAL DEALER | BIRIGUI, SP</span>
               </motion.div>
             </div>
             
@@ -146,11 +146,11 @@ export function Marketplace() {
         <div className="flex animate-marquee">
           {Array(10).fill("").map((_, i) => (
             <div key={i} className="flex items-center gap-10 mx-10">
+              <span className="text-black text-2xl font-black italic uppercase tracking-tighter">OFFICIAL DEALER BIRIGUI, SP</span>
+              <div className="w-4 h-4 bg-black rounded-full" />
               <span className="text-black text-2xl font-black italic uppercase tracking-tighter">ESTOQUE ATUALIZADO DIARIAMENTE</span>
               <div className="w-4 h-4 bg-black rounded-full" />
               <span className="text-black text-2xl font-black italic uppercase tracking-tighter">MELHOR AVALIAÇÃO DO BRASIL</span>
-              <div className="w-4 h-4 bg-black rounded-full" />
-              <span className="text-black text-2xl font-black italic uppercase tracking-tighter">FINANCIAMENTO EM ATÉ 48X</span>
               <div className="w-4 h-4 bg-black rounded-full" />
             </div>
           ))}

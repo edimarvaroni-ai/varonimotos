@@ -69,7 +69,7 @@ export function AboutPage() {
           <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-400/5 blur-[120px] rounded-full" />
           <h2 className="text-4xl font-black uppercase italic tracking-tighter relative z-10">Faça parte do <span className="text-yellow-400">Futuro</span></h2>
           <p className="text-xs text-white/30 uppercase font-black tracking-[0.4em] leading-relaxed relative z-10 max-w-lg mx-auto">
-            Desde Birigui para o mundo, conectando motociclistas e realizando sonhos sobre duas rodas.
+            Official Dealer em Birigui, conectando motociclistas e realizando sonhos sobre duas rodas para todo o Brasil.
           </p>
         </div>
       </div>

@@ -75,6 +75,26 @@ export function ListingDetail() {
     navigate(`/chat/${chatId}`);
   };
 
+  const handleShare = async () => {
+    if (!listing) return;
+    const shareData = {
+      title: `Confira esta ${listing.brand} ${listing.model} na Varoni Motos`,
+      text: listing.description,
+      url: window.location.href,
+    };
+    
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        alert("Link copiado para a área de transferência!");
+      }
+    } catch (err) {
+      console.error("Error sharing", err);
+    }
+  };
+
   if (loading || !listing) {
     return (
       <div className="h-screen bg-black flex items-center justify-center">
@@ -108,7 +128,12 @@ export function ListingDetail() {
             Voltar ao Estoque
           </button>
           <div className="flex gap-4">
-            <button className="w-14 h-14 flex items-center justify-center bg-white/5 border border-white/10 rounded-2xl hover:border-yellow-400/50 transition-all cursor-pointer text-white shadow-2xl"><Share2 className="w-5 h-5" /></button>
+            <button 
+              onClick={handleShare}
+              className="w-14 h-14 flex items-center justify-center bg-white/5 border border-white/10 rounded-2xl hover:border-yellow-400/50 transition-all cursor-pointer text-white shadow-2xl"
+            >
+              <Share2 className="w-5 h-5" />
+            </button>
             <button className="w-14 h-14 flex items-center justify-center bg-white/5 border border-white/10 rounded-2xl hover:border-yellow-400/50 transition-all cursor-pointer text-white shadow-2xl"><Heart className="w-5 h-5" /></button>
           </div>
         </div>

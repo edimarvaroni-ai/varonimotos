@@ -1,7 +1,6 @@
 import React from "react";
 import { motion } from "motion/react";
-import { Phone, Mail, MapPin, Instagram, Facebook, MessageCircle } from "lucide-react";
-import { StoreMap } from "../components/StoreMap";
+import { Phone, Mail, MapPin, Instagram, Facebook } from "lucide-react";
 
 export function ContactPage() {
   return (
@@ -10,7 +9,7 @@ export function ContactPage() {
         {/* Header */}
         <div className="flex flex-col md:flex-row items-end justify-between gap-8 border-b border-white/5 pb-16">
           <div className="space-y-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.5em] text-yellow-400">Atendimento Exclusivo</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.5em] text-yellow-400">Official Dealer Birigui, SP</p>
             <h1 className="text-7xl font-black uppercase italic tracking-tighter">Fale <span className="text-white/20">Conosco</span></h1>
           </div>
           <p className="text-xs text-white/30 uppercase font-black tracking-[0.3em] max-w-sm text-right leading-relaxed">
@@ -39,16 +38,16 @@ export function ContactPage() {
               { 
                 icon: Mail, 
                 label: "E-mail Geral", 
-                val: "contato@varonimotos.com", 
+                val: "VARONIMOTOS@GMAIL.COM", 
                 sub: "Respostas em até 24h",
-                link: "mailto:contato@varonimotos.com"
+                link: "mailto:VARONIMOTOS@GMAIL.COM"
               },
               { 
                 icon: MapPin, 
-                label: "Showroom Físico", 
-                val: "Rua Saudades, 1140", 
-                sub: "Centro - Birigui",
-                link: "https://maps.apple.com/?address=Rua%20Saudades,%201140,%20Birigui%20-%20SP"
+                label: "Official Dealer", 
+                val: "BIRIGUI, SP", 
+                sub: "AV. DAS ROSAS, 35",
+                link: "https://maps.apple.com/?address=Av.%20das%20Rosas,%2035,%20Birigui%20-%20SP"
               }
             ].map((c, i) => (
               <a 
@@ -71,10 +70,35 @@ export function ContactPage() {
             ))}
           </div>
 
-          {/* Map/Form */}
+          {/* Brand Visual */}
           <div className="lg:col-span-7">
-            <div className="h-full min-h-[500px] rounded-[4.5rem] p-2 relative overflow-hidden bg-white/5 border border-white/10">
-               <StoreMap />
+            <div className="h-full min-h-[500px] rounded-[4.5rem] p-12 relative overflow-hidden bg-white/5 border border-white/10 flex flex-col items-center justify-center text-center space-y-8">
+               <div className="absolute inset-0 opacity-10">
+                 <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/20 to-transparent" />
+                 <div className="h-full w-full bg-[radial-gradient(#ffffff10_1px,transparent_1px)] [background-size:20px_20px]" />
+               </div>
+               
+               <div className="relative">
+                 <div className="w-32 h-32 bg-yellow-400 rounded-full flex items-center justify-center animate-pulse blur-3xl absolute inset-0 -z-10 opacity-20" />
+                 <h2 className="text-[120px] font-black italic tracking-tighter text-white opacity-5 select-none">VARONI</h2>
+               </div>
+               
+               <div className="space-y-4 max-w-sm relative">
+                 <h3 className="text-2xl font-black uppercase italic tracking-tighter text-white">Authentic Machine</h3>
+                 <p className="text-[10px] text-white/30 uppercase font-bold tracking-[0.4em] leading-relaxed">
+                   Visite nosso showroom em Birigui para uma experiência completa no mundo das duas rodas.
+                 </p>
+                 <div className="pt-8">
+                   <a 
+                     href="https://maps.apple.com/?address=Av.%20das%20Rosas,%2035,%20Birigui%20-%20SP"
+                     target="_blank"
+                     rel="noreferrer"
+                     className="px-8 py-3 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-widest text-white hover:bg-yellow-400 hover:text-black transition-all"
+                   >
+                     Abrir no GPS
+                   </a>
+                 </div>
+               </div>
             </div>
           </div>
         </div>

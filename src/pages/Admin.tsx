@@ -26,9 +26,11 @@ export function AdminPortal({ user, profile }: { user: any, profile: UserProfile
 
   // Post Form State
   const [postForm, setPostForm] = useState({ title: "", content: "", images: [] as string[] });
+  const [postImageUrl, setPostImageUrl] = useState("");
   
   // Catalog Form State
   const [catalogForm, setCatalogForm] = useState({ type: "", model: "", year: new Date().getFullYear(), description: "", images: [] as string[] });
+  const [catalogImageUrl, setCatalogImageUrl] = useState("");
   
   const [isUploading, setIsUploading] = useState(false);
 
@@ -154,6 +156,28 @@ export function AdminPortal({ user, profile }: { user: any, profile: UserProfile
   const deleteCatalogItem = async (id: string) => {
     if (confirm("Excluir este item do catálogo?")) {
       await deleteDoc(doc(db, "catalog", id));
+    }
+  };
+
+  const handlePostImageUrlAdd = () => {
+    if (!postImageUrl) return;
+    try {
+      new URL(postImageUrl);
+      setPostForm(prev => ({ ...prev, images: [...prev.images, postImageUrl] }));
+      setPostImageUrl("");
+    } catch (e) {
+      alert("URL inválida");
+    }
+  };
+
+  const handleCatalogImageUrlAdd = () => {
+    if (!catalogImageUrl) return;
+    try {
+      new URL(catalogImageUrl);
+      setCatalogForm(prev => ({ ...prev, images: [...prev.images, catalogImageUrl] }));
+      setCatalogImageUrl("");
+    } catch (e) {
+      alert("URL inválida");
     }
   };
 
@@ -486,6 +510,23 @@ export function AdminPortal({ user, profile }: { user: any, profile: UserProfile
 
                   <div className="space-y-4">
                     <label className="text-[10px] font-black uppercase tracking-widest text-white/20 ml-2">Imagens da Postagem</label>
+                    <div className="flex gap-2 mb-4">
+                      <input 
+                        type="url"
+                        value={postImageUrl}
+                        onChange={e => setPostImageUrl(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handlePostImageUrlAdd())}
+                        className="flex-1 bg-white/5 border border-white/10 p-4 rounded-xl text-[10px] font-medium outline-none focus:border-yellow-400 transition-all text-white"
+                        placeholder="Adicionar por URL (ex: https://...)"
+                      />
+                      <button 
+                        type="button"
+                        onClick={handlePostImageUrlAdd}
+                        className="px-6 bg-white/10 text-white rounded-xl font-black uppercase tracking-widest text-[9px] hover:bg-yellow-400 hover:text-black transition-all cursor-pointer border-0"
+                      >
+                        Add URL
+                      </button>
+                    </div>
                     <div className="grid grid-cols-4 gap-4">
                       {postForm.images.map((url, i) => (
                         <div key={i} className="aspect-square rounded-xl overflow-hidden border border-white/10 relative">
@@ -603,6 +644,23 @@ export function AdminPortal({ user, profile }: { user: any, profile: UserProfile
 
                   <div className="space-y-4">
                     <label className="text-[10px] font-black uppercase tracking-widest text-white/20 ml-2">Imagens do Modelo</label>
+                    <div className="flex gap-2 mb-4">
+                      <input 
+                        type="url"
+                        value={catalogImageUrl}
+                        onChange={e => setCatalogImageUrl(e.target.value)}
+                        onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleCatalogImageUrlAdd())}
+                        className="flex-1 bg-white/5 border border-white/10 p-4 rounded-xl text-[10px] font-medium outline-none focus:border-yellow-400 transition-all text-white"
+                        placeholder="Adicionar por URL (ex: https://...)"
+                      />
+                      <button 
+                        type="button"
+                        onClick={handleCatalogImageUrlAdd}
+                        className="px-6 bg-white/10 text-white rounded-xl font-black uppercase tracking-widest text-[9px] hover:bg-yellow-400 hover:text-black transition-all cursor-pointer border-0"
+                      >
+                        Add URL
+                      </button>
+                    </div>
                     <div className="grid grid-cols-4 gap-4">
                       {catalogForm.images.map((url, i) => (
                         <div key={i} className="aspect-square rounded-xl overflow-hidden border border-white/10 relative">

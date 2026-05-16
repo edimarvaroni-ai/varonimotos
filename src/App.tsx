@@ -10,7 +10,7 @@ import {
   Bike, Search, MessageSquare, Heart, User, PlusCircle, 
   Settings, LogOut, LogIn, Menu, X, ChevronRight,
   TrendingUp, MapPin, Calculator, Shield, Zap, Instagram, Facebook, Phone, MessageCircle,
-  ShieldCheck, Newspaper
+  ShieldCheck, Newspaper, Mail
 } from "lucide-react";
 import { 
   db, auth, collection, onSnapshot, query, orderBy, 
@@ -76,7 +76,7 @@ function Layout({ children, user, profile }: { children: React.ReactNode, user: 
               <h1 className="text-2xl font-black tracking-tighter uppercase italic leading-none">
                 VARONI<span className="text-yellow-400 ml-1">MOTOS</span>
               </h1>
-              <p className="text-[7px] uppercase tracking-[0.6em] text-white/20 font-black mt-1">Authentic Machine Marketplace</p>
+              <p className="text-[7px] uppercase tracking-[0.6em] text-white/20 font-black mt-1">Authentic Machine Marketplace <span className="text-yellow-400/50">|</span> Birigui, SP</p>
             </div>
           </Link>
 
@@ -230,19 +230,38 @@ function Layout({ children, user, profile }: { children: React.ReactNode, user: 
                   Vendas 02
                 </a>
               </li>
-              <li className="text-[10px] text-white/20 uppercase tracking-widest pt-2">Av. das Rosas, 35 - Birigui, SP</li>
+              <li>
+                <a href="mailto:VARONIMOTOS@GMAIL.COM" className="text-xs text-white/40 hover:text-white transition-colors uppercase tracking-widest flex items-center gap-2">
+                  <Mail className="w-3 h-3 text-yellow-400" />
+                  E-mail Geral
+                </a>
+              </li>
+              <li className="text-[10px] text-white/20 uppercase tracking-widest pt-2">
+                OFFICIAL DEALER - BIRIGUI/SP:<br />
+                AV. DAS ROSAS, 35 - CIDADE JARDIM
+              </li>
             </ul>
           </div>
 
           <div className="space-y-6">
             <h4 className="text-[10px] font-black uppercase tracking-[0.4em] text-yellow-400">Social</h4>
             <div className="flex gap-4">
-              <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-yellow-400 transition-colors cursor-pointer group">
+              <a 
+                href="https://instagram.com/varonimotos" 
+                target="_blank" 
+                rel="noreferrer"
+                className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-yellow-400 transition-colors cursor-pointer group"
+              >
                 <Instagram className="w-4 h-4 group-hover:text-black" />
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-yellow-400 transition-colors cursor-pointer group">
+              </a>
+              <a 
+                href="https://facebook.com/varonimotos" 
+                target="_blank" 
+                rel="noreferrer"
+                className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-yellow-400 transition-colors cursor-pointer group"
+              >
                 <Facebook className="w-4 h-4 group-hover:text-black" />
-              </div>
+              </a>
             </div>
           </div>
         </div>

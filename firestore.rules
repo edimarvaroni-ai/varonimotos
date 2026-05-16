@@ -33,11 +33,11 @@ service cloud.firestore {
              data.brand is string && data.brand.size() <= 100 &&
              data.model is string && data.model.size() <= 100 &&
              data.price is number && data.price >= 0 &&
-             data.images is list && data.images.size() > 0 &&
+             data.images is list &&
              data.location is map &&
              data.status in ['active', 'sold', 'deleted'] &&
-             data.createdAt == request.time &&
-             data.updatedAt == request.time;
+             data.createdAt is timestamp &&
+             data.updatedAt is timestamp;
     }
 
     // --- Collections ---
@@ -59,8 +59,8 @@ service cloud.firestore {
 
     match /listings/{listingId} {
       allow read: if true;
-      allow create: if isAdmin() && isValidListing(incoming());
-      allow update: if isAdmin() && 
+      allow create: if isSignedIn() && (isAdmin() || isValidListing(incoming()));
+      allow update: if isSignedIn() && (isAdmin() || (isOwner(existing().userId) && 
                        incoming().userId == existing().userId &&
                        incoming().createdAt == existing().createdAt &&
                        isValidListing(incoming()) &&
@@ -69,8 +69,8 @@ service cloud.firestore {
                          (incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt'])) ||
                          // Action: Edit
                          (incoming().diff(existing()).affectedKeys().hasOnly(['brand', 'model', 'year', 'price', 'condition', 'kilometers', 'description', 'category', 'specs', 'images', 'color', 'location', 'updatedAt']))
-                       );
-      allow delete: if isAdmin();
+                       )));
+      allow delete: if isAdmin() || isOwner(existing().userId);
     }
 
     match /chats/{chatId} {
