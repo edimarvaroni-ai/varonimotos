@@ -9,11 +9,13 @@ import { AnimatePresence, motion } from "motion/react";
 import { 
   Bike, Search, MessageSquare, Heart, User, PlusCircle, 
   Settings, LogOut, LogIn, Menu, X, ChevronRight,
-  TrendingUp, MapPin, Calculator, Shield, Zap, Instagram, Facebook, Phone, MessageCircle
+  TrendingUp, MapPin, Calculator, Shield, Zap, Instagram, Facebook, Phone, MessageCircle,
+  ShieldCheck
 } from "lucide-react";
 import { 
   db, auth, collection, onSnapshot, query, orderBy, 
-  signInWithPopup, googleProvider, signOut, where, doc 
+  signInWithPopup, googleProvider, signOut, where, doc,
+  handleFirestoreError, OperationType
 } from "./lib/firebase";
 import { Listing, ListingStatus, UserProfile } from "./types";
 import { Marketplace } from "./pages/Marketplace";
@@ -49,76 +51,91 @@ function Layout({ children, user, profile }: { children: React.ReactNode, user: 
     }
   };
 
+  const isAdmin = user?.email === "edimar.varoni@gmail.com";
+
   const navLinks = [
     { name: "Catálogo", path: "/", icon: Bike },
     { name: "Financiamento", path: "/financiamento", icon: Calculator },
-    { name: "Vender", path: "/vender", icon: PlusCircle },
+    ...(isAdmin ? [{ name: "Anunciar", path: "/vender", icon: PlusCircle }] : []),
     { name: "Sobre", path: "/sobre", icon: Shield },
     { name: "Contato", path: "/contato", icon: Phone },
   ];
 
   return (
-    <div className="min-h-screen bg-[#050505] text-white selection:bg-yellow-400 selection:text-black">
+    <div className="min-h-screen bg-[#050505] text-white selection:bg-yellow-400 selection:text-black font-sans">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-[100] bg-black/80 backdrop-blur-2xl border-b border-white/5">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-10 h-10 bg-yellow-400 rounded-xl flex items-center justify-center group-hover:rotate-[-5deg] transition-transform">
-              <Bike className="text-white w-6 h-6" />
+      <nav className="fixed top-0 left-0 right-0 z-[100] bg-black/95 backdrop-blur-2xl border-b border-white/5 h-24 flex items-center">
+        <div className="max-w-[1600px] w-full mx-auto px-8 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-4 group">
+            <div className="w-12 h-12 bg-yellow-400 rounded-2xl flex items-center justify-center group-hover:rotate-[-10deg] transition-all duration-500 shadow-[0_0_30px_rgba(250,204,21,0.2)]">
+              <Bike className="text-black w-7 h-7" />
             </div>
-            <div>
-              <h1 className="text-xl font-black tracking-tighter uppercase italic">
-                Varoni<span className="text-yellow-400">Motos</span>
+            <div className="hidden sm:block">
+              <h1 className="text-2xl font-black tracking-tighter uppercase italic leading-none">
+                VARONI<span className="text-yellow-400 ml-1">MOTOS</span>
               </h1>
-              <p className="text-[8px] uppercase tracking-[0.4em] text-white/30 font-bold leading-none">Marketplace Premium</p>
+              <p className="text-[7px] uppercase tracking-[0.6em] text-white/20 font-black mt-1">Authentic Machine Marketplace</p>
             </div>
           </Link>
 
           {/* Desktop Nav */}
-          <div className="hidden md:flex items-center gap-10">
+          <div className="hidden lg:flex items-center gap-1">
             {navLinks.map(link => (
               <Link 
                 key={link.path}
                 to={link.path}
-                className={`flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-all ${
-                  location.pathname === link.path ? 'text-yellow-400' : 'text-white/40 hover:text-white'
+                className={`relative px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] transition-all group ${
+                  location.pathname === link.path ? 'text-yellow-400' : 'text-white/30 hover:text-white'
                 }`}
               >
-                <link.icon className="w-4 h-4" />
-                {link.name}
+                <span className="relative z-10">{link.name}</span>
+                {location.pathname === link.path && (
+                  <motion.div 
+                    layoutId="nav-active"
+                    className="absolute inset-0 bg-white/5 rounded-xl border border-white/10"
+                  />
+                )}
               </Link>
             ))}
+            {isAdmin && (
+              <Link 
+                to="/admin"
+                className={`relative px-6 py-3 text-[10px] font-black uppercase tracking-[0.2em] transition-all group ${
+                  location.pathname === "/admin" ? 'text-yellow-400' : 'text-white/30 hover:text-white'
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-yellow-400" />
+                  <span className="relative z-10">Admin Portal</span>
+                </div>
+              </Link>
+            )}
           </div>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-8">
             {user ? (
-              <div className="flex items-center gap-4">
-                <Link to="/favoritos" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors relative">
-                  <Heart className="w-5 h-5 text-white/40" />
+              <div className="flex items-center gap-2">
+                <Link to="/favoritos" className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center hover:bg-white/10 transition-all border border-white/5">
+                  <Heart className="w-5 h-5 text-white/30" />
                 </Link>
-                <Link to="/dashboard" className="flex items-center gap-3 p-1 pl-4 bg-white/5 rounded-2xl border border-white/5 hover:border-white/20 transition-all">
-                  <div className="text-right hidden sm:block">
-                    <p className="text-[9px] font-black uppercase tracking-widest text-white/40 leading-none mb-1">Minha Conta</p>
-                    <p className="text-xs font-bold uppercase truncate max-w-[100px]">{user.displayName || "Usuário"}</p>
+                <Link to="/dashboard" className="flex items-center gap-4 p-1.5 pl-5 bg-white/5 rounded-2xl border border-white/5 hover:border-yellow-400/50 transition-all">
+                  <div className="text-right hidden xl:block">
+                    <p className="text-[8px] font-black uppercase tracking-[0.2em] text-yellow-400 leading-none mb-1">Commander</p>
+                    <p className="text-xs font-black uppercase truncate max-w-[120px] italic">{user.displayName?.split(' ')[0] || "Pilot"}</p>
                   </div>
-                  <img src={user.photoURL || "https://api.dicebear.com/7.x/avataaars/svg?seed=user"} className="w-8 h-8 rounded-xl border border-white/10" alt="" />
+                  <img src={user.photoURL || "https://api.dicebear.com/7.x/avataaars/svg?seed=user"} className="w-9 h-9 rounded-xl border border-white/10" alt="" />
                 </Link>
-                {profile?.role === "admin" && (
-                  <Link to="/admin" className="w-10 h-10 rounded-xl bg-yellow-400/10 border border-yellow-400/20 flex items-center justify-center hover:bg-yellow-400 hover:text-black transition-colors">
-                    <Settings className="w-5 h-5 text-yellow-400 hover:text-white" />
-                  </Link>
-                )}
-                <button onClick={handleLogout} className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-yellow-400/20 hover:text-yellow-400 transition-colors cursor-pointer border-0">
+                <button onClick={handleLogout} className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center hover:bg-red-500/20 hover:text-red-500 transition-all cursor-pointer border border-white/5">
                   <LogOut className="w-5 h-5" />
                 </button>
               </div>
             ) : (
               <button 
                 onClick={handleLogin}
-                className="bg-white text-black px-6 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-yellow-400 hover:text-black transition-all shadow-xl shadow-white/5 flex items-center gap-3 border-0 cursor-pointer"
+                className="bg-yellow-400 text-black px-10 py-4 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] hover:bg-white transition-all shadow-[0_0_40px_rgba(250,204,21,0.15)] flex items-center gap-4 border-0 cursor-pointer active:scale-95"
               >
                 <LogIn className="w-4 h-4" />
-                Acessar Marketplace
+                Join The Crew
               </button>
             )}
           </div>
@@ -126,7 +143,7 @@ function Layout({ children, user, profile }: { children: React.ReactNode, user: 
       </nav>
 
       {/* Main Content */}
-      <main className="pt-20">
+      <main className="pt-24 min-h-screen">
         {children}
       </main>
 
@@ -181,7 +198,7 @@ function Layout({ children, user, profile }: { children: React.ReactNode, user: 
             <ul className="space-y-4">
               <li><Link to="/" className="text-xs text-white/40 hover:text-white transition-colors uppercase tracking-widest">Catálogo</Link></li>
               <li><Link to="/financiamento" className="text-xs text-white/40 hover:text-white transition-colors uppercase tracking-widest">Financiamento</Link></li>
-              <li><Link to="/vender" className="text-xs text-white/40 hover:text-white transition-colors uppercase tracking-widest">Anunciar Moto</Link></li>
+              {isAdmin && <li><Link to="/vender" className="text-xs text-white/40 hover:text-white transition-colors uppercase tracking-widest">Anunciar Moto</Link></li>}
               <li><Link to="/sobre" className="text-xs text-white/40 hover:text-white transition-colors uppercase tracking-widest">Sobre Nós</Link></li>
               <li><Link to="/contato" className="text-xs text-white/40 hover:text-white transition-colors uppercase tracking-widest">Contato</Link></li>
             </ul>
@@ -254,6 +271,9 @@ export default function App() {
             setProfile(null);
           }
           setLoading(false);
+        }, (err) => {
+          handleFirestoreError(err, OperationType.GET, `users/${u.uid}`);
+          setLoading(false);
         });
       } else {
         setProfile(null);
@@ -264,10 +284,27 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="h-screen w-full bg-black flex items-center justify-center">
-        <div className="flex flex-col items-center gap-6">
-          <div className="w-16 h-16 border-t-2 border-yellow-400 rounded-full animate-spin" />
-          <h2 className="text-[10px] font-black bg-white/5 px-6 py-2 rounded-full uppercase tracking-[0.5em] text-yellow-400">Varoni Motos</h2>
+      <div className="h-screen w-full bg-black flex items-center justify-center overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(250,204,21,0.05),transparent_70%)]" />
+        <div className="flex flex-col items-center gap-10 relative">
+          <div className="relative">
+            <motion.div 
+               animate={{ rotate: 360 }}
+               transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+               className="w-32 h-32 border-[1px] border-yellow-400/20 border-t-yellow-400 rounded-full" 
+            />
+            <div className="absolute inset-0 flex items-center justify-center">
+              <Bike className="w-10 h-10 text-yellow-400 animate-pulse" />
+            </div>
+          </div>
+          <div className="text-center space-y-4">
+            <h2 className="title-massive text-5xl italic text-white leading-none">VARONI<br /><span className="text-yellow-400">MOTOS</span></h2>
+            <div className="flex items-center justify-center gap-2">
+              <div className="w-1 h-1 bg-yellow-400 rounded-full animate-bounce" />
+              <div className="w-1 h-1 bg-yellow-400 rounded-full animate-bounce [animation-delay:0.2s]" />
+              <div className="w-1 h-1 bg-yellow-400 rounded-full animate-bounce [animation-delay:0.4s]" />
+            </div>
+          </div>
         </div>
       </div>
     );

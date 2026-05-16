@@ -29,6 +29,7 @@ export interface Listing {
   kilometers: number;
   description: string;
   images: string[];
+  color: string;
   category: string;
   specs: string;
   status: ListingStatus;
@@ -58,4 +59,14 @@ export interface Message {
   senderId: string;
   content: string;
   createdAt: any;
+}
+
+export interface Post {
+  id: string;
+  title: string;
+  content: string;
+  images: string[];
+  createdAt: any;
+  updatedAt: any;
+  authorId: string;
 }

@@ -1,10 +1,6 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Default deny
-    match /{document=**} {
-      allow read, write: if false;
-    }
 
     // --- Helpers ---
     function isSignedIn() { return request.auth != null; }
@@ -18,7 +14,8 @@ service cloud.firestore {
 
     function isAdmin() { 
       return isSignedIn() && (
-        request.auth.token.email == "edimar.varoni@gmail.com"
+        request.auth.token.email == "edimar.varoni@gmail.com" ||
+        request.auth.uid == "7kZ3gi1ZglR7CurDLMNZcjOO8Ly2"
       );
     }
 
@@ -31,36 +28,53 @@ service cloud.firestore {
     }
 
     function isValidListing(data) {
-      return data.keys().hasAll(['userId', 'brand', 'model', 'price', 'images', 'location']) &&
+      return data.keys().hasAll(['userId', 'brand', 'model', 'price', 'images', 'location', 'status', 'createdAt', 'updatedAt']) &&
              data.userId == request.auth.uid &&
              data.brand is string && data.brand.size() <= 100 &&
              data.model is string && data.model.size() <= 100 &&
              data.price is number && data.price >= 0 &&
              data.images is list && data.images.size() > 0 &&
-             data.location is map;
+             data.location is map &&
+             data.status in ['active', 'sold', 'deleted'] &&
+             data.createdAt == request.time &&
+             data.updatedAt == request.time;
     }
 
     // --- Collections ---
 
+    match /posts/{postId} {
+      allow get, list: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
     match /users/{userId} {
-      allow read: if isSignedIn();
+      allow read: if true;
       allow create, update: if isOwner(userId) && isValidUser(incoming());
     }
 
     match /listings/{listingId} {
       allow read: if true;
-      allow create: if isVerified() && isValidListing(incoming());
-      allow update: if (isOwner(existing().userId) || isAdmin()) && isValidListing(incoming());
-      allow delete: if isOwner(existing().userId) || isAdmin();
+      allow create: if isAdmin() && isValidListing(incoming());
+      allow update: if isAdmin() && 
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       isValidListing(incoming()) &&
+                       (
+                         // Action: Sold
+                         (incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt'])) ||
+                         // Action: Edit
+                         (incoming().diff(existing()).affectedKeys().hasOnly(['brand', 'model', 'year', 'price', 'condition', 'kilometers', 'description', 'category', 'specs', 'images', 'color', 'location', 'updatedAt']))
+                       );
+      allow delete: if isAdmin();
     }
 
     match /chats/{chatId} {
       allow read: if isSignedIn() && request.auth.uid in existing().participants;
-      allow create: if isVerified() && request.auth.uid in incoming().participants;
+      allow create: if isSignedIn() && request.auth.uid in incoming().participants;
       
       match /messages/{messageId} {
         allow read: if isSignedIn() && request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
-        allow create: if isVerified() && 
+        allow create: if isSignedIn() && 
                        request.auth.uid == incoming().senderId &&
                        request.auth.uid in get(/databases/$(database)/documents/chats/$(chatId)).data.participants;
       }
@@ -68,6 +82,10 @@ service cloud.firestore {
 
     match /users/{userId}/favorites/{listingId} {
       allow read, write: if isOwner(userId);
+    }
+    // Default deny
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }

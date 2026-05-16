@@ -7,7 +7,10 @@ import {
   Shield, Zap, ArrowRight, CheckCircle2, User, Phone,
   Calculator, Info
 } from "lucide-react";
-import { db, doc, onSnapshot, auth, collection, addDoc, serverTimestamp, query, where, getDocs } from "../lib/firebase";
+import { 
+  db, doc, onSnapshot, auth, collection, addDoc, serverTimestamp, query, where, getDocs,
+  handleFirestoreError, OperationType
+} from "../lib/firebase";
 import { Listing, UserProfile } from "../types";
 
 export function ListingDetail() {
@@ -30,8 +33,13 @@ export function ListingDetail() {
           if (userSnap.exists()) {
             setSeller(userSnap.data() as UserProfile);
           }
+        }, (err) => {
+          handleFirestoreError(err, OperationType.GET, `users/${data.userId}`);
         });
       }
+      setLoading(false);
+    }, (err) => {
+      handleFirestoreError(err, OperationType.GET, `listings/${id}`);
       setLoading(false);
     });
   }, [id]);
@@ -67,174 +75,180 @@ export function ListingDetail() {
     navigate(`/chat/${chatId}`);
   };
 
-  if (loading) return <div className="h-screen flex items-center justify-center"><div className="w-12 h-12 border-t-2 border-yellow-400 rounded-full animate-spin" /></div>;
-  if (!listing) return <div className="h-screen flex items-center justify-center text-white/50 uppercase font-black tracking-widest">Anúncio não encontrado</div>;
-
   return (
-    <div className="min-h-screen pb-40">
-      <div className="max-w-7xl mx-auto px-8 pt-12">
+    <div className="min-h-screen pb-40 bg-black">
+      {/* Dynamic Background */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[1000px] h-[1000px] bg-yellow-400/5 blur-[160px] rounded-full opacity-50" />
+      </div>
+
+      <div className="max-w-[1600px] mx-auto px-8 pt-12 relative z-10">
         {/* Back and Actions */}
-        <div className="flex items-center justify-between mb-12">
+        <div className="flex items-center justify-between mb-16">
           <button 
             onClick={() => navigate(-1)}
-            className="flex items-center gap-3 px-6 py-3 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all text-[10px] font-black uppercase tracking-widest cursor-pointer border-0 text-white"
+            className="flex items-center gap-4 px-10 py-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all text-[11px] font-black uppercase tracking-[0.3em] cursor-pointer text-white no-outline shadow-2xl"
           >
-            <ChevronLeft className="w-5 h-5 text-red-500" />
-            Voltar
+            <ChevronLeft className="w-5 h-5 text-yellow-400" />
+            Voltar ao Estoque
           </button>
           <div className="flex gap-4">
-            <button className="w-12 h-12 flex items-center justify-center bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 cursor-pointer border-0 text-white"><Share2 className="w-5 h-5" /></button>
-            <button className="w-12 h-12 flex items-center justify-center bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 cursor-pointer border-0 text-white"><Heart className="w-5 h-5" /></button>
+            <button className="w-14 h-14 flex items-center justify-center bg-white/5 border border-white/10 rounded-2xl hover:border-yellow-400/50 transition-all cursor-pointer text-white shadow-2xl"><Share2 className="w-5 h-5" /></button>
+            <button className="w-14 h-14 flex items-center justify-center bg-white/5 border border-white/10 rounded-2xl hover:border-yellow-400/50 transition-all cursor-pointer text-white shadow-2xl"><Heart className="w-5 h-5" /></button>
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
-          {/* Left: Images */}
-          <div className="lg:col-span-12 xl:col-span-7 space-y-8">
-            <div className="bg-[#0A0A0A] border border-white/5 rounded-[3rem] overflow-hidden relative group">
-              <motion.img 
-                key={activeImage}
-                initial={{ opacity: 0, scale: 1.05 }}
-                animate={{ opacity: 1, scale: 1 }}
-                src={listing.images[activeImage]} 
-                className="w-full aspect-video object-cover"
-                alt=""
-              />
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
-            </div>
-            
-            <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4">
-              {listing.images.map((img, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setActiveImage(idx)}
-                  className={`w-32 aspect-video shrink-0 rounded-2xl overflow-hidden border-2 transition-all p-0 cursor-pointer ${
-                    activeImage === idx ? 'border-yellow-400 scale-105' : 'border-white/5 opacity-40 hover:opacity-100'
-                  }`}
-                >
-                  <img src={img} className="w-full h-full object-cover" alt="" />
-                </button>
-              ))}
+        <div className="grid grid-cols-1 xl:grid-cols-12 gap-20">
+          {/* Left: Content */}
+          <div className="xl:col-span-7 space-y-12">
+            <div className="relative group">
+              <div className="bg-black border-4 border-white/5 rounded-[4rem] overflow-hidden relative shadow-[0_0_100px_rgba(0,0,0,0.8)]">
+                <motion.img 
+                  key={activeImage}
+                  initial={{ opacity: 0, scale: 1.1 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 1 }}
+                  src={listing.images?.[activeImage] || "https://images.unsplash.com/photo-1599819811279-d1921f3f7a6c?q=80&w=2070&auto=format&fit=crop"} 
+                  className="w-full aspect-[16/10] object-cover"
+                  alt=""
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
+              </div>
+              
+              {/* Image Indicators */}
+              <div className="absolute -bottom-6 left-12 right-12 z-20 flex gap-4 overflow-x-auto no-scrollbar py-4 px-2">
+                {listing.images?.length > 0 && listing.images.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setActiveImage(idx)}
+                    className={`w-40 aspect-[16/10] shrink-0 rounded-2xl overflow-hidden border-2 transition-all p-0 cursor-pointer shadow-2xl ${
+                      activeImage === idx ? 'border-yellow-400 scale-110' : 'border-white/10 opacity-60 hover:opacity-100 hover:scale-105'
+                    }`}
+                  >
+                    <img src={img} className="w-full h-full object-cover" alt="" />
+                  </button>
+                ))}
+              </div>
             </div>
 
-            {/* Description Card */}
-            <div className="p-12 glass-card premium-border rounded-[3rem] space-y-10">
-              <div className="flex items-center gap-3">
-                <Info className="w-6 h-6 text-yellow-400" />
-                <h3 className="text-2xl font-black uppercase italic tracking-tighter">Sobre a Máquina</h3>
+            <div className="pt-20 space-y-16">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-12">
+                {[
+                  { label: "Ano Fabricação", value: listing.year, icon: Calendar },
+                  { label: "Kilometragem", value: `${listing.kilometers.toLocaleString()} KM`, icon: TrendingUp },
+                  { label: "Categoria", value: listing.category, icon: Zap },
+                  { label: "Condição", value: listing.condition, icon: Shield },
+                ].map((item, i) => (
+                  <div key={i} className="space-y-4">
+                    <div className="flex items-center gap-3 text-white/20 uppercase font-black tracking-[0.2em] text-[10px]">
+                      <item.icon className="w-4 h-4 text-yellow-400" />
+                      {item.label}
+                    </div>
+                    <p className="text-3xl font-black italic tracking-tighter uppercase leading-none">{item.value}</p>
+                  </div>
+                ))}
               </div>
-              <p className="text-white/60 leading-relaxed font-medium text-lg uppercase tracking-wide">
-                {listing.description}
-              </p>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-8 pt-8 border-t border-white/5">
-                <div className="space-y-1">
-                  <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">Ano</p>
-                  <p className="text-xl font-black italic tracking-tighter text-white">{listing.year}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">Quilometragem</p>
-                  <p className="text-xl font-black italic tracking-tighter text-white">{listing.kilometers.toLocaleString()} KM</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">Condição</p>
-                  <p className="text-xl font-black italic tracking-tighter text-white uppercase">{listing.condition}</p>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">Estilo</p>
-                  <p className="text-xl font-black italic tracking-tighter text-yellow-400 uppercase">{listing.category}</p>
+
+              {/* Description Section */}
+              <div className="p-16 bg-white/[0.02] border border-white/5 rounded-[4rem] backdrop-blur-3xl relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-400/5 blur-[100px] rounded-full pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="space-y-12 relative z-10">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-1 bg-yellow-400" />
+                    <h3 className="text-2xl font-black italic uppercase tracking-tighter">Machine Specification</h3>
+                  </div>
+                  <p className="text-xl text-white/60 leading-relaxed font-bold italic uppercase tracking-tight max-w-[90%]">
+                    {listing.description}
+                  </p>
+                  
+                  <div className="grid grid-cols-2 gap-10 pt-10 border-t border-white/5">
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-white/20 mb-3">Color Style</p>
+                      <p className="text-xl font-black italic tracking-tighter uppercase">{listing.color}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-white/20 mb-3">Technical Data</p>
+                      <p className="text-xl font-black italic tracking-tighter uppercase">{listing.specs || "Premium Configuration"}</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Right: Actions */}
-          <div className="lg:col-span-12 xl:col-span-5 space-y-8">
-            <div className="sticky top-32 space-y-8">
-              {/* Main Info Card */}
-              <div className="p-12 glass-card premium-border rounded-[3rem] relative overflow-hidden bg-black/40">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-400/5 blur-[120px] rounded-full" />
+          <div className="xl:col-span-5 space-y-10">
+            <div className="sticky top-32 space-y-10">
+              <div className="p-16 bg-white/[0.03] border border-white/10 rounded-[4rem] backdrop-blur-3xl overflow-hidden shadow-[0_40px_100px_rgba(0,0,0,0.4)]">
+                <div className="absolute top-0 right-0 w-full h-1 bg-yellow-400" />
                 
-                <div className="relative z-10 space-y-8">
+                <div className="space-y-12">
                   <div>
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-2 h-2 bg-yellow-400 animate-pulse rounded-full" />
-                      <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/40">{listing.brand}</p>
-                    </div>
-                    <h2 className="text-6xl font-black uppercase italic tracking-tighter leading-none mb-4">{listing.model}</h2>
-                    <p className="text-sm font-bold text-white/30 tracking-widest uppercase">{listing.specs}</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.6em] text-yellow-400 mb-6">Authentic Machine</p>
+                    <h2 className="title-massive text-7xl md:text-8xl leading-none italic mb-4">
+                      {listing.brand}<br />
+                      <span className="text-white/40">{listing.model}</span>
+                    </h2>
                   </div>
 
-                  <div className="space-y-2 py-8 border-y border-white/5">
-                    <p className="text-[10px] font-black text-yellow-400 uppercase tracking-widest">Preço Sugerido</p>
-                    <div className="flex items-baseline gap-2">
-                       <span className="text-xl font-black text-white/20 italic tracking-tighter leading-none">R$</span>
-                       <span className="text-7xl font-black italic tracking-tighter text-white leading-none">
-                         {listing.price.toLocaleString('pt-BR')}
-                       </span>
+                  <div className="space-y-4">
+                    <p className="text-[11px] font-black uppercase tracking-[0.4em] text-white/20">Investimento Premium</p>
+                    <div className="flex items-baseline gap-4">
+                      <span className="text-4xl font-black italic text-yellow-400 tracking-tighter">R$</span>
+                      <span className="text-9xl font-black italic tracking-tighter leading-none shadow-text">
+                        {listing.price.toLocaleString('pt-BR').split(',')[0]}
+                      </span>
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-4">
+                  <div className="space-y-6 pt-10">
                     <a 
                       href="https://wa.me/5518996770986"
                       target="_blank"
-                      className="w-full bg-[#25D366] text-white py-6 rounded-2xl font-black uppercase tracking-[0.3em] text-xs flex items-center justify-center gap-4 hover:shadow-2xl hover:shadow-[#25D366]/20 transition-all border-0 cursor-pointer no-underline"
+                      rel="noopener noreferrer"
+                      className="w-full h-24 bg-[#25D366] text-white rounded-3xl font-black uppercase tracking-[0.4em] text-xs flex items-center justify-center gap-6 hover:scale-[1.02] active:scale-[0.98] transition-all no-underline shadow-[0_20px_50px_rgba(37,211,102,0.2)]"
                     >
-                      <MessageCircle className="w-5 h-5" />
-                      Atendimento Vendas 01
+                      <MessageCircle className="w-8 h-8" />
+                      CONSULTOR VENDAS 01
                     </a>
                     <a 
                       href="https://wa.me/5518997572769"
                       target="_blank"
-                      className="w-full bg-white text-black py-6 rounded-2xl font-black uppercase tracking-[0.3em] text-xs flex items-center justify-center gap-4 hover:bg-yellow-400 transition-all shadow-4xl shadow-white/5 border-0 cursor-pointer no-underline"
+                      rel="noopener noreferrer"
+                      className="w-full h-24 bg-white text-black rounded-3xl font-black uppercase tracking-[0.4em] text-xs flex items-center justify-center gap-6 hover:bg-yellow-400 active:scale-[0.98] transition-all no-underline"
                     >
-                      <MessageCircle className="w-5 h-5" />
-                      Atendimento Vendas 02
+                      <MessageCircle className="w-8 h-8" />
+                      CONSULTOR VENDAS 02
                     </a>
+                  </div>
+
+                  <div className="flex items-center gap-4 justify-center pt-8 opacity-40">
+                    <Shield className="w-4 h-4" />
+                    <span className="text-[9px] font-black uppercase tracking-[0.4em]">PROCEDÊNCIA GARANTIDA VARONI</span>
                   </div>
                 </div>
               </div>
 
-              {/* Seller Card */}
-              <div className="p-8 glass-card border border-white/5 rounded-[2.5rem] bg-white/2 flex items-center justify-between">
-                <div className="flex items-center gap-5">
+              {/* Seller Reference */}
+              <div className="p-10 bg-white/[0.02] border border-white/5 rounded-[3rem] flex items-center justify-between group cursor-pointer hover:bg-white/[0.05] transition-all">
+                <div className="flex items-center gap-6">
                   <div className="relative">
-                    <img 
-                      src={seller?.photoURL || "https://api.dicebear.com/7.x/avataaars/svg?seed=seller"} 
-                      className="w-16 h-16 rounded-2xl border-2 border-white/10"
-                      alt=""
-                    />
-                    <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-[#25D366] rounded-full border-4 border-[#0A0A0A] flex items-center justify-center">
-                      <CheckCircle2 className="w-3 h-3 text-white" />
+                    <img src={seller?.photoURL || "https://api.dicebear.com/7.x/avataaars/svg?seed=seller"} className="w-20 h-20 rounded-[2rem] border-2 border-white/5" alt="" />
+                    <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-black rounded-full border border-white/10 flex items-center justify-center">
+                      <div className="w-2 h-2 bg-yellow-400 rounded-full animate-ping" />
                     </div>
                   </div>
                   <div>
-                    <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-1">Anunciado por</p>
-                    <p className="text-lg font-black uppercase tracking-tighter italic text-white">{seller?.displayName || "Vendedor Varoni"}</p>
-                    <div className="flex items-center gap-2 mt-1">
-                      <MapPin className="w-3 h-3 text-yellow-400" />
-                      <p className="text-[9px] font-bold text-white/40 uppercase tracking-widest">{listing.location.city}, {listing.location.state}</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 mb-1">Official Dealer</p>
+                    <p className="text-2xl font-black italic tracking-tighter uppercase">{seller?.displayName || "Varoni Motos"}</p>
+                    <div className="flex items-center gap-2 mt-2 text-white/50">
+                      <MapPin className="w-4 h-4 text-yellow-400" />
+                      <span className="text-[10px] font-black uppercase tracking-widest">{listing.location.city}, {listing.location.state}</span>
                     </div>
                   </div>
                 </div>
-                <Link to="/perfil" className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors">
-                  <ChevronRight className="w-5 h-5 text-white/40" />
-                </Link>
-              </div>
-
-              {/* Financing Preview Card */}
-              <div className="p-10 bg-yellow-400 rounded-[2.5rem] relative overflow-hidden group cursor-pointer" onClick={() => navigate('/')}>
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-[60px] rounded-full group-hover:scale-150 transition-transform duration-1000" />
-                <div className="relative z-10 flex justify-between items-center text-black">
-                  <div className="space-y-2">
-                    <div className="flex items-center gap-3">
-                      <Calculator className="w-5 h-5" />
-                      <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-80 leading-none">Financiamento</p>
-                    </div>
-                    <h4 className="text-3xl font-black uppercase italic tracking-tighter">48x R$ 1.890</h4>
-                    <p className="text-[8px] font-bold opacity-50 uppercase tracking-widest">Simule com sua entrada preferencial</p>
-                  </div>
-                  <ChevronRight className="w-8 h-8 opacity-50 group-hover:translate-x-1 transition-transform" />
+                <div className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center group-hover:bg-yellow-400 group-hover:text-black transition-all">
+                  <ChevronRight className="w-7 h-7" />
                 </div>
               </div>
             </div>

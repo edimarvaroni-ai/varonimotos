@@ -8,7 +8,8 @@ import {
 } from "lucide-react";
 import { 
   db, collection, addDoc, onSnapshot, query, 
-  where, orderBy, doc, serverTimestamp, getDoc 
+  where, orderBy, doc, serverTimestamp, getDoc,
+  handleFirestoreError, OperationType
 } from "../lib/firebase";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -49,6 +50,8 @@ export function ChatPage({ user }: { user: any }) {
         };
       }));
       setChats(chatList);
+    }, (err) => {
+      handleFirestoreError(err, OperationType.GET, "chats");
     });
   }, [user]);
 
@@ -62,6 +65,8 @@ export function ChatPage({ user }: { user: any }) {
 
     const unsubMessages = onSnapshot(q, (snap) => {
       setMessages(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    }, (err) => {
+      handleFirestoreError(err, OperationType.GET, `chats/${chatId}/messages`);
     });
 
     const untubChat = onSnapshot(doc(db, "chats", chatId), async (snap) => {
@@ -72,6 +77,8 @@ export function ChatPage({ user }: { user: any }) {
         const listingSnap = await getDoc(doc(db, "listings", data.listingId));
         setActiveChat({ id: snap.id, ...data, otherUser: otherSnap.data(), listing: listingSnap.data() });
       }
+    }, (err) => {
+      handleFirestoreError(err, OperationType.GET, `chats/${chatId}`);
     });
 
     return () => {

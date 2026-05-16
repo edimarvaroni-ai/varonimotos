@@ -1,6 +1,6 @@
-import React from "react";
-import { motion } from "motion/react";
-import { Calculator, Shield, Zap, TrendingUp, CheckCircle2, ArrowRight } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "motion/react";
+import { Calculator, Shield, Zap, TrendingUp, CheckCircle2, ArrowRight, DollarSign, Calendar } from "lucide-react";
 
 export function FinancingPage() {
   return (
@@ -49,34 +49,6 @@ export function FinancingPage() {
               </div>
             </div>
           ))}
-        </div>
-
-        {/* Simulator CTA */}
-        <div className="p-20 glass-card premium-border rounded-[4rem] relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-12 bg-yellow-400">
-          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white/20 to-transparent pointer-events-none" />
-          
-          <div className="relative z-10 space-y-6 max-w-xl text-black">
-            <h2 className="text-5xl font-black uppercase italic tracking-tighter leading-tight">QUER SIMULAR UM <span className="text-white">FINANCIAMENTO?</span></h2>
-            <div className="flex flex-wrap gap-6 pt-4">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4" />
-                <p className="text-[10px] font-black uppercase tracking-widest">Sem Burocracia</p>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4" />
-                <p className="text-[10px] font-black uppercase tracking-widest">Resultado Imediato</p>
-              </div>
-            </div>
-          </div>
-
-          <a 
-            href="https://wa.me/5518996770986" 
-            target="_blank"
-            className="relative z-10 px-12 py-8 bg-black text-white rounded-[2rem] font-black uppercase tracking-[0.4em] text-xs flex items-center gap-6 hover:scale-105 transition-transform shadow-2xl shadow-black/40 no-underline"
-          >
-            Falar com Especialista
-            <ArrowRight className="w-6 h-6 text-yellow-400" />
-          </a>
         </div>
 
         {/* Partners */}

@@ -77,6 +77,20 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["chatId", "senderId", "content"]
+    },
+    "Post": {
+      "title": "Post",
+      "description": "Official company announcement or blog post",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "content": { "type": "string" },
+        "images": { "type": "array", "items": { "type": "string" } },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "updatedAt": { "type": "string", "format": "date-time" },
+        "authorId": { "type": "string" }
+      },
+      "required": ["title", "content", "images", "authorId"]
     }
   },
   "firestore": {
@@ -87,6 +101,10 @@
     "/listings/{listingId}": {
       "schema": "Listing",
       "description": "Motorcycle marketplace listings"
+    },
+    "/posts/{postId}": {
+      "schema": "Post",
+      "description": "Official blog posts"
     },
     "/chats/{chatId}": {
       "schema": "Chat",

@@ -6,7 +6,10 @@ import {
   TrendingUp, ArrowRight, Trash2, Edit3, 
   MapPin, Shield, Zap, Info, Bike, ChevronRight
 } from "lucide-react";
-import { db, auth, collection, onSnapshot, query, where, doc, deleteDoc, updateDoc } from "../lib/firebase";
+import { 
+  db, auth, collection, onSnapshot, query, where, doc, deleteDoc, updateDoc,
+  handleFirestoreError, OperationType
+} from "../lib/firebase";
 import { Listing, ListingStatus } from "../types";
 
 export function Dashboard({ user }: { user: any }) {
@@ -27,6 +30,8 @@ export function Dashboard({ user }: { user: any }) {
 
     const unsubAds = onSnapshot(qAds, (snap) => {
       setListings(snap.docs.map(d => ({ ...d.data(), id: d.id } as Listing)));
+    }, (err) => {
+      handleFirestoreError(err, OperationType.GET, "listings");
     });
 
     setLoading(false);
