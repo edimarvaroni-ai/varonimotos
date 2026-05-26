@@ -8,6 +8,7 @@ import {
 } from "lucide-react";
 import { 
   db, auth, collection, onSnapshot, query, where, doc, deleteDoc, updateDoc,
+  serverTimestamp,
   handleFirestoreError, OperationType
 } from "../lib/firebase";
 import { Listing, ListingStatus } from "../types";
@@ -41,14 +42,28 @@ export function Dashboard({ user }: { user: any }) {
   }, [user]);
 
   const deleteListing = async (id: string) => {
-    if (confirm("Tem certeza que deseja excluir este anúncio?")) {
-      await updateDoc(doc(db, "listings", id), { status: "deleted" });
+    if (confirm("Tem certeza que deseja remover permanentemente este anúncio?")) {
+      try {
+        await updateDoc(doc(db, "listings", id), { 
+          status: "deleted",
+          updatedAt: serverTimestamp() 
+        });
+      } catch (err) {
+        handleFirestoreError(err, OperationType.UPDATE, `listings/${id}`);
+      }
     }
   };
 
   const markAsSold = async (id: string, currentStatus: string) => {
-    const newStatus = currentStatus === "sold" ? "active" : "sold";
-    await updateDoc(doc(db, "listings", id), { status: newStatus });
+    try {
+      const newStatus = currentStatus === "sold" ? "active" : "sold";
+      await updateDoc(doc(db, "listings", id), { 
+        status: newStatus,
+        updatedAt: serverTimestamp() 
+      });
+    } catch (err) {
+      handleFirestoreError(err, OperationType.UPDATE, `listings/${id}`);
+    }
   };
 
   if (!user) return <div className="h-screen flex items-center justify-center p-8 text-white/20 uppercase font-black tracking-widest">Acesso Negado</div>;
@@ -122,8 +137,15 @@ export function Dashboard({ user }: { user: any }) {
             listings.length > 0 ? (
               listings.map(listing => (
                 <div key={listing.id} className="p-8 glass-card border border-white/5 rounded-[2.5rem] flex flex-col md:flex-row items-center gap-12 group hover:border-yellow-400/30 transition-all">
-                  <div className="relative w-full md:w-64 h-40 rounded-3xl overflow-hidden shrink-0">
-                    <img src={listing.images?.[0] || "https://images.unsplash.com/photo-1599819811279-d1921f3f7a6c?q=80&w=2070&auto=format&fit=crop"} className="w-full h-full object-cover" alt="" />
+                  <div className="relative w-full md:w-64 h-40 rounded-3xl overflow-hidden shrink-0 bg-white/5">
+                    <img 
+                      src={listing.images?.[0] || "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?q=80&w=800&auto=format&fit=crop"} 
+                      className="w-full h-full object-cover" 
+                      alt="" 
+                      onError={(e) => {
+                        e.currentTarget.src = "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?q=80&w=800&auto=format&fit=crop";
+                      }}
+                    />
                     <div className={`absolute top-4 left-4 px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-widest ${
                       listing.status === 'sold' ? 'bg-yellow-400 text-black' : 'bg-black/80 text-white/70'
                     }`}>

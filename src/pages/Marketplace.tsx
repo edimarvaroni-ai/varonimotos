@@ -56,12 +56,19 @@ export function Marketplace() {
   return (
     <div className="min-h-screen">
       {/* Hero Search */}
-      <section className="relative min-h-[90vh] flex items-center justify-center pt-20 px-8 overflow-hidden bg-black">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(250,204,21,0.1),transparent_70%)] pointer-events-none" />
-        
-        {/* Decorative elements */}
-        <div className="absolute top-1/4 -left-20 w-80 h-80 bg-yellow-400/10 blur-[120px] rounded-full animate-pulse" />
-        <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-white/5 blur-[120px] rounded-full" />
+      <section className="relative min-h-[90vh] flex items-center justify-center pt-20 px-8 overflow-hidden">
+        {/* Background Showroom Image */}
+        <div className="absolute inset-0 z-0">
+          <img 
+            src="https://i.ibb.co/JR95RTDM/varoni.jpg" 
+            className="w-full h-full object-cover opacity-75 brightness-[1.15] contrast-[1.05] saturate-[1.10] select-none pointer-events-none"
+            alt="Showroom Varoni Motos"
+          />
+          {/* A highly professional gradated overlay: elegant dark vignette from borders to keep text and inputs fully readable, while highlighting the stunning showroom center */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/90 via-black/20 to-black" />
+          <div className="absolute inset-0 bg-black/10" />
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(250,204,21,0.08),transparent_70%)]" />
+        </div>
         
         <div className="max-w-[1400px] mx-auto relative z-10 w-full text-center">
           <motion.div

@@ -15,18 +15,26 @@ export function ListingCard({ listing, isFavorite, onToggleFavorite }: {
       whileHover={{ y: -10 }}
       className="group bg-black border border-white/5 hover:border-yellow-400/30 transition-all duration-500 rounded-[2.5rem] overflow-hidden flex flex-col relative shadow-2xl"
     >
-      <Link to={`/listing/${listing.id}`} className="block relative h-72 overflow-hidden">
+      <Link to={`/listing/${listing.id}`} className="block relative h-72 overflow-hidden bg-white/5">
         <img 
-          src={listing.images?.[0] || "https://images.unsplash.com/photo-1599819811279-d1921f3f7a6c?q=80&w=2070&auto=format&fit=crop"} 
+          src={listing.images?.[0] || "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?q=80&w=800&auto=format&fit=crop"} 
           alt={`${listing.brand} ${listing.model}`}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[2s]"
+          onError={(e) => {
+            e.currentTarget.src = "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?q=80&w=800&auto=format&fit=crop";
+          }}
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-80" />
         
         {/* Badges */}
-        <div className="absolute top-6 left-6 flex gap-3 z-20">
+        <div className="absolute top-6 left-6 flex flex-col gap-3 z-20">
+          {listing.status === 'sold' && (
+            <div className="bg-yellow-400 text-black text-[9px] font-black uppercase tracking-[0.3em] px-4 py-2 rounded-xl shadow-[0_0_20px_rgba(250,204,21,0.5)]">
+              VENDIDO
+            </div>
+          )}
           {listing.isPremium && (
-            <div className="bg-yellow-400 text-black text-[9px] font-black uppercase tracking-[0.3em] px-4 py-2 rounded-xl shadow-[0_0_20px_rgba(250,204,21,0.3)]">
+            <div className="bg-white text-black text-[9px] font-black uppercase tracking-[0.3em] px-4 py-2 rounded-xl">
               PREMIUM
             </div>
           )}

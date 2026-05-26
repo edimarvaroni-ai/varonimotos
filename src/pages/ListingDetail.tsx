@@ -5,10 +5,11 @@ import {
   ChevronLeft, ChevronRight, Share2, Heart, 
   MessageCircle, MapPin, Calendar, TrendingUp, 
   Shield, Zap, ArrowRight, CheckCircle2, User, Phone,
-  Calculator, Info
+  Calculator, Info, Maximize2
 } from "lucide-react";
 import { 
   db, doc, onSnapshot, auth, collection, addDoc, serverTimestamp, query, where, getDocs,
+  updateDoc,
   handleFirestoreError, OperationType
 } from "../lib/firebase";
 import { Listing, UserProfile } from "../types";
@@ -20,6 +21,7 @@ export function ListingDetail() {
   const [seller, setSeller] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeImage, setActiveImage] = useState(0);
+  const [isOwner, setIsOwner] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -27,6 +29,7 @@ export function ListingDetail() {
       if (docSnap.exists()) {
         const data = { ...docSnap.data(), id: docSnap.id } as Listing;
         setListing(data);
+        setIsOwner(auth.currentUser?.uid === data.userId);
         
         // Fetch seller
         onSnapshot(doc(db, "users", data.userId), (userSnap) => {
@@ -36,13 +39,53 @@ export function ListingDetail() {
         }, (err) => {
           handleFirestoreError(err, OperationType.GET, `users/${data.userId}`);
         });
+      } else {
+        navigate('/marketplace');
       }
       setLoading(false);
     }, (err) => {
       handleFirestoreError(err, OperationType.GET, `listings/${id}`);
       setLoading(false);
     });
-  }, [id]);
+  }, [id, navigate]);
+
+  useEffect(() => {
+    if (!listing?.images || listing.images.length <= 1) return;
+
+    const timer = setTimeout(() => {
+      setActiveImage((prev) => (prev + 1) % listing.images.length);
+    }, 3000);
+
+    return () => clearTimeout(timer);
+  }, [activeImage, listing?.images]);
+
+  const handleToggleSold = async () => {
+    if (!listing) return;
+    try {
+      const newStatus = listing.status === "sold" ? "active" : "sold";
+      await updateDoc(doc(db, "listings", listing.id), { 
+        status: newStatus,
+        updatedAt: serverTimestamp()
+      });
+    } catch (err) {
+      handleFirestoreError(err, OperationType.UPDATE, `listings/${listing.id}`);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!listing) return;
+    if (confirm("Deseja realmente remover este anúncio permanentemente?")) {
+      try {
+        await updateDoc(doc(db, "listings", listing.id), { 
+          status: "deleted",
+          updatedAt: serverTimestamp()
+        });
+        navigate('/dashboard');
+      } catch (err) {
+        handleFirestoreError(err, OperationType.UPDATE, `listings/${listing.id}`);
+      }
+    }
+  };
 
   const handleStartChat = async () => {
     if (!auth.currentUser) {
@@ -118,8 +161,8 @@ export function ListingDetail() {
       </div>
 
       <div className="max-w-[1600px] mx-auto px-8 pt-12 relative z-10">
-        {/* Back and Actions */}
-        <div className="flex items-center justify-between mb-16">
+            {/* Back and Actions */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-16">
           <button 
             onClick={() => navigate(-1)}
             className="flex items-center gap-4 px-10 py-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all text-[11px] font-black uppercase tracking-[0.3em] cursor-pointer text-white no-outline shadow-2xl"
@@ -127,7 +170,28 @@ export function ListingDetail() {
             <ChevronLeft className="w-5 h-5 text-yellow-400" />
             Voltar ao Estoque
           </button>
-          <div className="flex gap-4">
+          
+          <div className="flex flex-wrap items-center gap-4">
+            {isOwner && (
+              <div className="flex items-center gap-2 pr-4 border-r border-white/5">
+                <button 
+                  onClick={handleToggleSold}
+                  className={`px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all cursor-pointer ${
+                    listing.status === 'sold' 
+                    ? 'bg-yellow-400 text-black shadow-[0_0_30px_rgba(250,204,21,0.2)]' 
+                    : 'bg-white/5 text-white/50 border border-white/10 hover:border-yellow-400/50'
+                  }`}
+                >
+                  {listing.status === 'sold' ? 'Vendido' : 'Marcar Vendido'}
+                </button>
+                <button 
+                  onClick={handleDelete}
+                  className="px-8 py-4 bg-red-500/10 border border-red-500/20 text-red-500 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-red-500 hover:text-white transition-all cursor-pointer"
+                >
+                  Excluir
+                </button>
+              </div>
+            )}
             <button 
               onClick={handleShare}
               className="w-14 h-14 flex items-center justify-center bg-white/5 border border-white/10 rounded-2xl hover:border-yellow-400/50 transition-all cursor-pointer text-white shadow-2xl"
@@ -141,19 +205,33 @@ export function ListingDetail() {
         <div className="grid grid-cols-1 xl:grid-cols-12 gap-20">
           {/* Left: Content */}
           <div className="xl:col-span-7 space-y-12">
-            <div className="relative group">
-              <div className="bg-black border-4 border-white/5 rounded-[4rem] overflow-hidden relative shadow-[0_0_100px_rgba(0,0,0,0.8)]">
+            <div className="relative group cursor-pointer">
+              <a 
+                href={listing.images?.[activeImage]} 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="block bg-black border-4 border-white/5 rounded-[4rem] overflow-hidden relative shadow-[0_0_100px_rgba(0,0,0,0.8)] group-hover:border-yellow-400/20 transition-all duration-500"
+              >
+                <div className="absolute top-10 right-10 z-30 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <div className="w-14 h-14 bg-black/80 backdrop-blur-xl border border-white/10 rounded-2xl flex items-center justify-center text-yellow-400">
+                    <Maximize2 className="w-6 h-6" />
+                  </div>
+                </div>
+                
                 <motion.img 
                   key={activeImage}
                   initial={{ opacity: 0, scale: 1.1 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 1 }}
-                  src={listing.images?.[activeImage] || "https://images.unsplash.com/photo-1599819811279-d1921f3f7a6c?q=80&w=2070&auto=format&fit=crop"} 
+                  src={listing.images?.[activeImage] || "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?q=80&w=1200&auto=format&fit=crop"} 
                   className="w-full aspect-[16/10] object-cover"
                   alt=""
+                  onError={(e) => {
+                    e.currentTarget.src = "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?q=80&w=1200&auto=format&fit=crop";
+                  }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
-              </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60 group-hover:opacity-40 transition-opacity" />
+              </a>
               
               {/* Image Indicators */}
               <div className="absolute -bottom-6 left-12 right-12 z-20 flex gap-4 overflow-x-auto no-scrollbar py-4 px-2">
@@ -161,11 +239,18 @@ export function ListingDetail() {
                   <button
                     key={idx}
                     onClick={() => setActiveImage(idx)}
-                    className={`w-40 aspect-[16/10] shrink-0 rounded-2xl overflow-hidden border-2 transition-all p-0 cursor-pointer shadow-2xl ${
+                    className={`w-40 aspect-[16/10] shrink-0 rounded-2xl overflow-hidden border-2 transition-all p-0 cursor-pointer shadow-2xl bg-white/5 ${
                       activeImage === idx ? 'border-yellow-400 scale-110' : 'border-white/10 opacity-60 hover:opacity-100 hover:scale-105'
                     }`}
                   >
-                    <img src={img} className="w-full h-full object-cover" alt="" />
+                    <img 
+                      src={img} 
+                      className="w-full h-full object-cover" 
+                      alt="" 
+                      onError={(e) => {
+                        e.currentTarget.src = "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?q=80&w=400&auto=format&fit=crop";
+                      }}
+                    />
                   </button>
                 ))}
               </div>
@@ -224,7 +309,12 @@ export function ListingDetail() {
                 
                 <div className="space-y-12">
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-[0.6em] text-yellow-400 mb-6">Authentic Machine</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.6em] text-yellow-400 mb-6 flex items-center gap-4">
+                      Authentic Machine
+                      {listing.status === 'sold' && (
+                        <span className="bg-yellow-400 text-black px-3 py-1 rounded-sm text-[8px] tracking-[0.2em]">VENDIDO</span>
+                      )}
+                    </p>
                     <h2 className="title-massive text-7xl md:text-8xl leading-none italic mb-4">
                       {listing.brand}<br />
                       <span className="text-white/40">{listing.model}</span>

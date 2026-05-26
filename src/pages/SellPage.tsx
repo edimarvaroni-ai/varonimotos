@@ -244,14 +244,33 @@ export function SellPage({ user }: { user: any }) {
   const handleUrlAdd = () => {
     if (!imageUrl) return;
     try {
-      new URL(imageUrl);
+      let candidate = imageUrl.trim();
+      
+      // Auto-extract from HTML/Markdown if user pasted embed codes (common with ImgBB)
+      if (candidate.includes('<img') && candidate.includes('src=')) {
+        const match = candidate.match(/src="([^"]+)"/);
+        if (match && match[1]) candidate = match[1];
+      } else if (candidate.includes('[img]') && candidate.includes('[/img]')) {
+        const match = candidate.match(/\[img\](.*?)\[\/img\]/i);
+        if (match && match[1]) candidate = match[1];
+      } else if (candidate.startsWith('![') && candidate.includes('](')) {
+        const match = candidate.match(/\(([^)]+)\)/);
+        if (match && match[1]) candidate = match[1];
+      }
+
+      // Final check for ibb.co viewer links
+      if (candidate.includes("ibb.co") && !candidate.includes("i.ibb.co")) {
+        console.warn("Detected link is a viewer page, not a direct image URL.");
+      }
+      
+      const parsed = new URL(candidate);
       setFormData(prev => ({
         ...prev,
-        images: [...prev.images, imageUrl]
+        images: [...prev.images, parsed.toString()]
       }));
       setImageUrl("");
     } catch (e) {
-      alert("Por favor, insira uma URL de imagem válida.");
+      alert("Por favor, insira uma URL de imagem válida ou o código de incorporação (HTML/BBCode).");
     }
   };
 
@@ -334,16 +353,13 @@ export function SellPage({ user }: { user: any }) {
             </motion.div>
           </div>
 
-          <div className="relative h-[240px] rounded-[3.5rem] overflow-hidden group premium-border">
-            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent z-10" />
+          <div className="relative h-[240px] rounded-[3.5rem] overflow-hidden group premium-border shadow-2xl">
+            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent z-10" />
             <img 
-              src="https://i.ibb.co/rGcMvDYT/image.jpg" 
-              className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 scale-110 group-hover:scale-100"
-              alt="Reference Machine"
+              src="https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&q=80&w=1200" 
+              className="w-full h-full object-cover group-hover:grayscale-0 transition-all duration-1000 scale-110 group-hover:scale-100"
+              alt="Varoni Premium Machine"
               referrerPolicy="no-referrer"
-              onError={(e) => {
-                e.currentTarget.src = "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&q=80&w=1200";
-              }}
             />
             <div className="absolute bottom-8 left-10 z-20">
               <div className="flex items-center gap-3 mb-2">
@@ -600,16 +616,18 @@ export function SellPage({ user }: { user: any }) {
                   <label className="text-[10px] font-black uppercase tracking-widest text-white/30 ml-2">Adicionar por Link URL</label>
                   <div className="bg-white/5 border border-white/10 rounded-3xl p-6 h-[180px] flex flex-col justify-center space-y-4">
                     <p className="text-[9px] font-medium uppercase tracking-[0.2em] text-white/40">
-                      Cole o link direto da imagem hospedada na internet.
+                      Cole o link ou o <span className="text-yellow-400">código HTML/BBCode</span> da imagem.
                     </p>
                     <div className="flex gap-2">
                       <input 
-                        type="url"
+                        type="text"
                         value={imageUrl}
                         onChange={e => setImageUrl(e.target.value)}
                         onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleUrlAdd())}
-                        className="flex-1 bg-black/40 border border-white/10 p-4 rounded-xl text-[10px] font-medium outline-none focus:border-yellow-400/50 transition-all text-white placeholder:text-white/5"
-                        placeholder="https://exemplo.com/moto.jpg"
+                        className={`flex-1 bg-black/40 border p-4 rounded-xl text-[10px] font-medium outline-none transition-all text-white placeholder:text-white/5 ${
+                          imageUrl.includes('ibb.co') && !imageUrl.includes('i.ibb.co') ? 'border-yellow-400/50' : 'border-white/10 focus:border-yellow-400/50'
+                        }`}
+                        placeholder="https://i.ibb.co/... ou Código HTML"
                       />
                       <button 
                         type="button"
@@ -619,6 +637,16 @@ export function SellPage({ user }: { user: any }) {
                         Add
                       </button>
                     </div>
+                    {imageUrl.includes('ibb.co') && !imageUrl.includes('i.ibb.co') && (
+                      <div className="space-y-1">
+                        <p className="text-[8px] font-black uppercase text-yellow-400 animate-pulse">
+                          ⚠️ O link curto do ImgBB não é uma imagem direta.
+                        </p>
+                        <p className="text-[7px] text-white/40 uppercase font-bold">
+                          Dica: Selecione "Link Direto" no site do ImgBB ou cole o "Código HTML".
+                        </p>
+                      </div>
+                    )}
                     <div className="flex items-center gap-2 text-[8px] font-black uppercase tracking-widest text-white/20">
                       <Zap className="w-3 h-3" />
                       <span>Processamento instantâneo</span>
@@ -672,8 +700,16 @@ export function SellPage({ user }: { user: any }) {
 
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {formData.images.map((url, idx) => (
-                  <div key={idx} className="relative group aspect-square rounded-2xl overflow-hidden border border-white/10">
-                    <img src={url} className="w-full h-full object-cover" alt="" />
+                  <div key={idx} className="relative group aspect-square rounded-2xl overflow-hidden border border-white/10 bg-white/5">
+                    <img 
+                      src={url} 
+                      className="w-full h-full object-cover" 
+                      alt="" 
+                      onError={(e) => {
+                        e.currentTarget.src = "https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&q=80&w=400";
+                        e.currentTarget.classList.add('opacity-40');
+                      }}
+                    />
                     <button 
                       type="button"
                       onClick={() => removeImage(idx)}
